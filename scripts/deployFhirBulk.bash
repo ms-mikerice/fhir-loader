@@ -23,13 +23,17 @@ declare TAG="HealthArchitectures = FHIRBulk"
 declare functionSKU="B1"
 declare functionWorkers="2"
 declare storageSKU="Standard_LRS"
+declare repoUrl="https://github.com/ms-mikerice/fhir-loader"
+declare aadTokenUrl="https://login.microsoftonline.us/"
+declare azureBaseRoot="usgovcloudapi.net"
+declare empty=""
 
 
 #########################################
 # FHIR Bulk Loader & Export Default App Settings 
 #########################################
 declare suffix=$RANDOM
-declare defresourceGroupLocation="westus2"
+declare defresourceGroupLocation="usgovvirginia"
 declare defresourceGroupName="bulk-fhir-"$suffix
 declare defdeployPrefix="bulk"$suffix
 declare defAppName="sfb-"$defdeployPrefix
@@ -185,7 +189,7 @@ function retry () {
 }
 
 function kvuri {
-	echo "@Microsoft.KeyVault(SecretUri=https://"$keyVaultName".vault.azure.net/secrets/"$@"/)"
+	echo "@Microsoft.KeyVault(SecretUri=https://"$keyVaultName".vault."$azureBaseRoot"/secrets/"$@"/)"
 }
 
 
@@ -668,7 +672,7 @@ echo "Creating FHIR Bulk Loader & Export Function Application"
 	
 	# Create the function app
 	echo "Creating FHIR Bulk Loader & Export Function App ["$bulkAppName"]..."
-	fahost=$(az functionapp create --name $bulkAppName --storage-account $deployPrefix$storageAccountNameSuffix  --plan $deployPrefix$serviceplanSuffix  --resource-group $resourceGroupName --runtime dotnet --os-type Windows --functions-version 3 --query "defaultHostName" --output tsv)
+	fahost=$(az functionapp create --name $bulkAppName --storage-account $deployPrefix$storageAccountNameSuffix  --plan $deployPrefix$serviceplanSuffix  --resource-group $resourceGroupName --runtime dotnet --os-type Windows --functions-version 4 --query "defaultHostName" --output tsv)
 
 	echo "FHIR Bulk Loader & Export Function hostname is: "$fahost
 	
@@ -684,7 +688,7 @@ echo "Creating FHIR Bulk Loader & Export Function Application"
 	echo "Retrieving FHIR Bulk Loader & Export Function App Host Key...  note - ths will retry 5 times before failing"
 	sleep 3
 	faresourceid="/subscriptions/"$subscriptionId"/resourceGroups/"$resourceGroupName"/providers/Microsoft.Web/sites/"$bulkAppName
-	fakey=$(retry az rest --method post --uri "https://management.azure.com"$faresourceid"/host/default/listKeys?api-version=2018-02-01" --query "functionKeys.default" --output tsv)
+	fakey=$(retry az rest --method post --uri "https://management."$azureBaseRoot$faresourceid"/host/default/listKeys?api-version=2018-02-01" --query "functionKeys.default" --output tsv)
 	
 	# Apply App Auth and Connection settings 
 	echo "Applying FHIR Bulk Loader & Export App settings ["$bulkAppName"]..."
@@ -701,12 +705,12 @@ echo "Creating FHIR Bulk Loader & Export Function Application"
 	# Note:  We need to by default disable the ImportBlobTrigger as that will conflict with the EventGridTrigger
 	#
 	echo "Applying Static App settings for FHIR Bulk Loader & Export App ["$bulkAppName"]..."
-	stepresult=$(az functionapp config appsettings set --name $bulkAppName --resource-group $resourceGroupName --settings AzureWebJobs.ImportBundleBlobTrigger.Disabled=1 FBI-TRANSFORMBUNDLES=true FBI-POOLEDCON-MAXCONNECTIONS=20)
+	stepresult=$(az functionapp config appsettings set --name $bulkAppName --resource-group $resourceGroupName --settings AzureWebJobs.ImportBundleBlobTrigger.Disabled=1 FBI-TRANSFORMBUNDLES=true FBI-POOLEDCON-MAXCONNECTIONS=20 AAD_Token_URL=$aadTokenUrl APPLICATIONINSIGHTS_CONNECTION_STRING=$empty)
 
 
 	# Deploy Function Application code
 	echo "Deploying FHIR Bulk Loader & Export App from source repo to ["$bulkAppName"]...  note - this can take a while"
-	stepresult=$(retry az functionapp deployment source config --branch main --manual-integration --name $bulkAppName --repo-url https://github.com/microsoft/fhir-loader --resource-group $resourceGroupName)
+	stepresult=$(retry az functionapp deployment source config --branch main --manual-integration --name $bulkAppName --repo-url $repoUrl --resource-group $resourceGroupName)
 
 	sleep 30	
 	#---

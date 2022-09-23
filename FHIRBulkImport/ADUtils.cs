@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -37,22 +38,28 @@ namespace FHIRBulkImport
             }
             else
             {
-                using (System.Net.WebClient client = new System.Net.WebClient())
+                using HttpClient httpClient = new()
                 {
-                    byte[] response =
-                     client.UploadValues("https://login.microsoftonline.com/" + tenant + "/oauth2/token", new NameValueCollection()
-                     {
-                        {"grant_type","client_credentials"},
-                        {"client_id",clientid},
-                        { "client_secret", secret },
-                        { "resource", resource }
-                     });
+                    BaseAddress = new Uri(ImportUtilityManager.GetEnvironmentVariable("AAD_Token_URL"))
+                };
 
+                var data = new[] {
+                    new KeyValuePair<string, string>("grant_type","client_credentials"),
+                    new KeyValuePair<string, string>("client_id", clientid),
+                    new KeyValuePair<string, string>("client_secret", secret),
+                    new KeyValuePair<string, string>("resource", resource)
+                };
 
-                    string result = System.Text.Encoding.UTF8.GetString(response);
-                    JObject obj = JObject.Parse(result);
-                    return (string)obj["access_token"];
-                }
+                using HttpResponseMessage response = await httpClient.PostAsync(
+                  $"{tenant}/oauth2/token",
+                  new FormUrlEncodedContent(data)
+                );
+
+                response.EnsureSuccessStatusCode();
+
+                var result = await response.Content.ReadAsStringAsync();
+                JObject obj = JObject.Parse(result);
+                return (string)obj["access_token"];
             }
         }
     }

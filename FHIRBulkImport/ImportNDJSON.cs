@@ -2,8 +2,9 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Messaging.EventGrid;
+using Azure.Messaging.EventGrid.SystemEvents;
 using Azure.Storage.Blobs;
-using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Azure.WebJobs.Host;
@@ -32,7 +33,7 @@ namespace FHIRBulkImport
             {
                 if (!int.TryParse(mrbundlemax, out maxresourcesperbundle)) maxresourcesperbundle = 200;
             }
-            StorageBlobCreatedEventData createdEvent = ((JObject)blobCreatedEvent.Data).ToObject<StorageBlobCreatedEventData>();
+            StorageBlobCreatedEventData createdEvent = blobCreatedEvent.Data.ToObjectFromJson<StorageBlobCreatedEventData>();
            
             log.LogInformation($"NDJSONConverter: Processing blob at {createdEvent.Url}...");
             string name = createdEvent.Url.Substring(createdEvent.Url.LastIndexOf('/') + 1);
