@@ -40,7 +40,7 @@ namespace FHIRBulkImport
             {
                 using HttpClient httpClient = new()
                 {
-                    BaseAddress = new Uri(ImportUtilityManager.GetEnvironmentVariable("AAD_Token_URL"))
+                    BaseAddress = new Uri(Utils.GetEnvironmentVariable("AAD_Token_URL"))
                 };
 
                 var data = new[] {
