@@ -41,6 +41,22 @@ git clone https://github.com/microsoft/fhir-loader.git
 
 Detailed instructions can be found [here](./scripts/Readme.md).
 
+## Check List
+1. Verify App Registration Client that you'll be using has FHIR-Contributor
+
+2. Get AppInsights !Connection String! and set the value for "APPLICATIONINSIGHTS_CONNECTION_STRING" in the App Configuration settings.
+
+3. Note required but, the simple fix for Function Integration warning "The following bindings are missing the required direction property and may have been placed incorrectly: myBlob. Please update the bindings in your functions.json file." is to add '"Direction": "In"' to the function.json.
+This can be done by manually editing in SCM.
+Example:
+
+      "type": "blob",
+      "connection": "FBI-STORAGEACCT",
+      "blobPath": "{data.url}",
+      "access": 1,
+      "name": "myBlob",
+      "direction": "in"
+
 ## Importing FHIR Data
 Once deployment is complete, go to the storage account created for the FHIR-Bulk Loader and Export and click on the **Storage browser (preview)** blade.
 
