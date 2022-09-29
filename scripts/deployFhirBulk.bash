@@ -20,9 +20,9 @@ IFS=$'\n\t'
 # HealthArchitecture Deployment Settings 
 #########################################
 declare TAG="HealthArchitectures = FHIRBulk"
-declare functionSKU="B1"
+declare functionSKU="P2v2"
 declare functionWorkers="2"
-declare storageSKU="Standard_LRS"
+declare storageSKU="Premium_LRS"
 declare repoUrl="https://github.com/ms-mikerice/fhir-loader"
 declare aadTokenUrl="https://login.microsoftonline.us/"
 declare azureBaseRoot="usgovcloudapi.net"
@@ -705,7 +705,7 @@ echo "Creating FHIR Bulk Loader & Export Function Application"
 	# Note:  We need to by default disable the ImportBlobTrigger as that will conflict with the EventGridTrigger
 	#
 	echo "Applying Static App settings for FHIR Bulk Loader & Export App ["$bulkAppName"]..."
-	stepresult=$(az functionapp config appsettings set --name $bulkAppName --resource-group $resourceGroupName --settings AzureWebJobs.ImportBundleBlobTrigger.Disabled=1 FBI-TRANSFORMBUNDLES=true FBI-POOLEDCON-MAXCONNECTIONS=20 AAD_Token_URL=$aadTokenUrl APPLICATIONINSIGHTS_CONNECTION_STRING=$empty)
+	stepresult=$(az functionapp config appsettings set --name $bulkAppName --resource-group $resourceGroupName --settings AzureWebJobs.ImportBundleBlobTrigger.Disabled=1 FBI-TRANSFORMBUNDLES=true FBI-POOLEDCON-MAXCONNECTIONS=20 FBI-DEFAULTRETRY=500 FBI-MAXRESOURCESPERBUNDLE=200 AAD_Token_URL=$aadTokenUrl APPLICATIONINSIGHTS_CONNECTION_STRING=$empty)
 
 
 	# Deploy Function Application code
