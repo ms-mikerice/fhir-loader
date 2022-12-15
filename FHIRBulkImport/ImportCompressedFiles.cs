@@ -4,16 +4,23 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
-using Microsoft.Extensions.Logging;
 
 namespace FHIRBulkImport
 {
-    public static class ImportCompressedFiles
+
+    public class ImportCompressedFiles
     {
+        private readonly TelemetryClient _telemetryClient;
+        public ImportCompressedFiles(TelemetryConfiguration telemetryConfiguration)
+        {
+            _telemetryClient = new TelemetryClient(telemetryConfiguration);
+        }
         [FunctionName("ImportCompressedFiles")]
         public static async Task Run([BlobTrigger("zip/{name}", Connection = "FBI-STORAGEACCT")]Stream myBlob, string name, ILogger log)
         {

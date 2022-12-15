@@ -4,6 +4,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Extensions.Logging;
@@ -12,16 +14,22 @@ using Newtonsoft.Json.Linq;
 namespace FHIRBulkImport
 {
     
-    public static class ImportBundleEventGrid
+    public class ImportBundleEventGrid
     {
+        private readonly TelemetryClient _telemetryClient;
+        public ImportBundleEventGrid(TelemetryConfiguration telemetryConfiguration)
+        {
+            _telemetryClient = new TelemetryClient(telemetryConfiguration);
+        }
         [FunctionName("ImportBundleEventGrid")]
-        public static async Task Run([EventGridTrigger] EventGridEvent blobCreatedEvent,
+        public async Task Run([EventGridTrigger] JObject blobCreatedEvent,
                                      [Blob("{data.url}", FileAccess.Read, Connection = "FBI-STORAGEACCT")] Stream myBlob,
                                      ILogger log)
         {
-            StorageBlobCreatedEventData createdEvent = blobCreatedEvent.Data.ToObjectFromJson<StorageBlobCreatedEventData>();
-            string name = createdEvent.Url.Substring(createdEvent.Url.LastIndexOf('/') + 1);
-            await ImportUtils.ImportBundle(myBlob, name, log);
+            string url = (string)blobCreatedEvent["data"]["url"];
+            log.LogInformation($"ImportBundleEventGrid: Processing blob at {url}...");
+            string name = url.Substring(url.LastIndexOf('/') + 1);
+            await ImportUtils.ImportBundle(myBlob, name, log, _telemetryClient);
         }
     }
 }

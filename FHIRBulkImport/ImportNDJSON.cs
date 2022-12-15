@@ -4,14 +4,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
-using Azure.Storage.Blobs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+
 
 using Newtonsoft.Json.Linq;
 namespace FHIRBulkImport
@@ -21,7 +17,7 @@ namespace FHIRBulkImport
       
         [FunctionName("ImportNDJSON")]
 
-        public static async Task Run([EventGridTrigger]EventGridEvent blobCreatedEvent,
+        public static async Task Run([EventGridTrigger]JObject blobCreatedEvent,
                                      [Blob("{data.url}", FileAccess.Read, Connection = "FBI-STORAGEACCT")] Stream myBlob,
                                      ILogger log)
         {
@@ -33,10 +29,9 @@ namespace FHIRBulkImport
             {
                 if (!int.TryParse(mrbundlemax, out maxresourcesperbundle)) maxresourcesperbundle = 200;
             }
-            StorageBlobCreatedEventData createdEvent = blobCreatedEvent.Data.ToObjectFromJson<StorageBlobCreatedEventData>();
-           
-            log.LogInformation($"NDJSONConverter: Processing blob at {createdEvent.Url}...");
-            string name = createdEvent.Url.Substring(createdEvent.Url.LastIndexOf('/') + 1);
+            string url = (string)blobCreatedEvent["data"]["url"];
+            log.LogInformation($"NDJSONConverter: Processing blob at {url}...");
+            string name = url.Substring(url.LastIndexOf('/') + 1);
             JObject rv = initBundle();
             int linecnt = 0;
             int total = 0;

@@ -4,14 +4,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Azure.Storage.Blobs.Specialized;
-using CloudStorageAccount = Microsoft.WindowsAzure.Storage.CloudStorageAccount;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage;
 
 namespace FHIRBulkImport
 {
     public static class StorageUtils
     {
-       
+     
         public static AppendBlobClient GetAppendBlobClientSync(string saconnectionString, string container, string blobname)
         {
             var retVal = new AppendBlobClient(saconnectionString, container, blobname);

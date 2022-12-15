@@ -1,4 +1,6 @@
 ﻿using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -27,7 +29,7 @@ namespace FHIRBulkImport
             return false;
 
         }
-        public static async Task<string> GetOAUTH2BearerToken(string resource, string tenant = null, string clientid = null, string secret = null)
+        public static async Task<string> GetOAUTH2BearerToken(ILogger log, string resource, string tenant = null, string clientid = null, string secret = null)
         {
             if (!string.IsNullOrEmpty(resource) && (string.IsNullOrEmpty(tenant) && string.IsNullOrEmpty(clientid) && string.IsNullOrEmpty(secret)))
             {
@@ -60,6 +62,12 @@ namespace FHIRBulkImport
                 var result = await response.Content.ReadAsStringAsync();
                 JObject obj = JObject.Parse(result);
                 return (string)obj["access_token"];
+
+                //string result = System.Text.Encoding.UTF8.GetString(response);
+                //if (Utils.GetBoolEnvironmentVariable("FBI-LOGTOKENINFO")) log.LogInformation($"Token Call Response:{result}");
+                    //JObject obj = JObject.Parse(result);
+                    //return (string)obj["access_token"];
+                //}
             }
         }
     }
