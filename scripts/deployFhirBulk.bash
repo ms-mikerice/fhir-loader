@@ -22,7 +22,7 @@ IFS=$'\n\t'
 declare TAG="HealthArchitectures = FHIRBulk"
 declare functionSKU="P2v2"
 declare functionWorkers="2"
-declare storageSKU="Premium_LRS"
+declare storageSKU="Standard_LRS"
 declare repoUrl="https://github.com/ms-mikerice/fhir-loader"
 declare aadTokenUrl="https://login.microsoftonline.us/"
 declare azureBaseRoot="usgovcloudapi.net"
